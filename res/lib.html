@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+    <title>西安交通大学图书馆图书预约系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="/static/bootstrap/css/bootstrap.min.css?bootstrap=3.0.3.1" rel="stylesheet" media="screen">
+<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<style>
+
+.navbar > .container .navbar-brand {
+    color:#ece9e9;
+   
+
+}
+
+a:hover, .navbar-inverse .navbar-nav > li > a {
+
+    color: #ece9e9;
+    background-color: transparent;
+
+}
+a:hover, .navbar-inverse .navbar-nav > li > a:focus {
+
+    color: #fff;
+    background-color: transparent;
+
+}
+</style>
+
+
+<link rel="stylesheet" href="/static/css/style.css">
+
+
+  </head>
+  <body>
+    
+<div class="navbar navbar-inverse" style='background-color:#4285f4;border-color:#4285f4' role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">西安交通大学图书馆预约系统</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+		<li><a href="/seat"><span class="glyphicon glyphicon-plus" aria-hidden="true">座位预约</span></a></li>
+                <li><a href="/my"><span class="glyphicon glyphicon-tags" aria-hidden="true"></span>&nbsp;我预约的座位</a></li>
+                <li><a href="/booksearch"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span>&nbsp;跨校/闭架预约借书</a></li>
+                <li><a href="/history"><span class="glyphicon glyphicon-book" aria-hidden="true"></span>&nbsp;我预约的图书</a></li>
+		<li><a href="/feedback"><span class="glyphicon glyphicon-circle-arrow-right" aria-hidden="true"></span>&nbsp;意见反馈</a></li>
+		<li><a href="/modify"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;资料修改</a></li>
+            </ul>
+	<ul class="nav navbar-nav navbar-right">
+
+           
+       
+           
+            <li><a href="/auth/logout">注销</a></li>
+           
+            <li><a href="/help">常见问题解答</a></li>
+
+          </ul>
+
+        </div>
+    </div>
+</div>
+
+    
+<div class="container">
+    
+
+    
+<script>
+
+function Remo(o){
+    var sp=o;
+    var img=document.getElementById('img');
+    img.src='http://202.117.24.3:8086/static/images/'+sp+'.png';
+    var domsp=document.getElementById('domsp');
+    var attentionp=document.getElementById('attention');
+    attentionp.innerHTML="<p style='color:red'>下滑以查看座位信息<p>";
+    $.ajax({ 
+        url: '/qseat',
+        data: {'sp':sp},
+        success : function(data){
+            var res=JSON.parse(data);
+            var btlist=document.getElementById('btlist');
+            btlist.innerHTML='<center><div>座位标识：&nbsp;&nbsp;&nbsp;<a href="javascript:void(0)" class="btn btn-info" style="margin:0 5px;margin-bottom:5px">可选</a>&nbsp;&nbsp;&nbsp;<a href="javascript:void(0)" class="btn btn-default"  style="margin:0 5px;margin-bottom:5px" disabled="disabled">已选</a>';
+            if (sp=='south2'){btlist.innerHTML= btlist.innerHTML+'<br><p style="color:red">温馨提示：南楼二层大厅为非安静区，若您需要更安静的环境，请选择其他区域。<p>';}
+            btlist.innerHTML=btlist.innerHTML+'</div></center><hr>';
+            var sdic=Object.keys(res['seat']).sort();
+            for (var key in sdic){
+                if (sdic[key] !=''){
+                    var d = document.createElement("div");
+                    d.className="btn-group";
+                    if (res['seat'][sdic[key]]==0){
+                        d.innerHTML='<a href="?kid='+sdic[key]+'&sp='+sp+'" class="btn btn-info" style="margin:0 5px;margin-bottom:5px">'+sdic[key]+'</a>'	;
+                        btlist.appendChild(d);
+                    }else{
+                        d.innerHTML='<a href="javascript:void(0)" class="btn btn-default"  style="margin:0 5px;margin-bottom:5px;text-decoration:line-through;" disabled="disabled">'+sdic[key]+'</a>';
+                        btlist.appendChild(d);
+                    }        
+                }
+            }
+        }
+    });
+};
+
+function yCheck(o){
+var sp=o;//$(o).attr('value');
+var img=document.getElementById('img');
+img.src='http://202.117.24.3:8086/static/images/'+sp+'.png';
+var btlist=document.getElementById('btlist');
+//console.log(o);
+btlist.innerHTML='';
+$.ajax({
+      
+      url: '/qspace',
+      data: {'floor':sp},
+      success : function(data){
+        //handle your result here
+	var res=JSON.parse(data);
+	//console.log(sp);
+	var domsp=document.getElementById('domsp');
+	domsp.innerHTML='<p id="attention"></p>';
+	for (var key in res['sp']){
+	if (key !=''){
+	//var str=("<a id='"+key+"' href='/seat?sp=' "+key+"  style='color:blue;'>"+res[key]+"</a>");
+	var p = document.createElement("p");
+	var a = document.createElement("a");
+	a.id=key;
+	a.href='javascript:Remo("'+key+'");';
+	a.description=key;
+	a.onclick=';';
+	a.innerHTML=res['sp'][key];
+	a.style='color:blue;';
+	p.appendChild(a);
+
+	p.innerHTML=p.innerHTML+'&nbsp;(空座:'+res['scount'][key][1]+'/总数:'+res['scount'][key][0]+'）';
+	domsp.appendChild(p);
+	}
+	}
+
+        
+      }
+	});
+
+
+
+};
+</script>
+
+
+<!------ Include the above in your HEAD tag ---------->
+<h4>2196113525，您好! </h4>
+
+
+
+
+
+                               
+<p>系统检测到您选择了<span style="background:#AFEEEE">“兴庆校区钱学森图书馆”</span>,如需更改，可点击<a href='/modify' style='color:blue;'>“资料修改”</a>。</p>
+<p><img src="http://202.117.24.3:8086/static/images/icon_news.gif"><span style="background:yellow">“图形化选座”</span>功能已上线，<a href='/seatui' style='color:blue;'>快来看看吧！</a></p>
+
+
+
+
+
+ <h4></h4>                       <hr>
+<center>
+
+<div class="container">
+    <div class="row">    
+        <div class="col-md-6 col-md-offset-3">
+            <div class="card">
+                <div class="card-image">
+                    <img id='img' class="img-responsive" src="http://202.117.24.3:8086/static/images/east.png">
+                    
+                </div><!-- card image -->
+                
+                <div class="card-content">
+                    <span class="card-title">兴庆校区钱学森图书馆座位预约</span>                    
+                    <button type="button" id="show" class="btn btn-custom pull-right" aria-label="Left Align">
+                        <i class="fa fa-ellipsis-v"></i>
+                    </button>
+                </div><!-- card content -->
+
+                  <div class="card-action">
+    <select id="tab-select" class="form-control" style='width:80%;' onchange="yCheck(this.options[this.options.selectedIndex].value);">
+		
+                    <option value="xingqing2floor" onmousedown="yCheck('xingqing2floor');">二层&nbsp;(空座:0/总数:288）</option>
+		
+                    <option value="xingqing3floor" onmousedown="yCheck('xingqing3floor');">三层&nbsp;(空座:0/总数:152）</option>
+		
+    </select>
+  </div>
+                <!-- card actions -->
+                 <div id ='domsp' class="card-action">
+
+		<p id='attention'></p>
+		
+		    <a id='north2elian'  href='javascript:void(0);' onclick='Remo("north2elian");' style='color:blue;'>二层连廊及流通大厅</a><br>(空座:0/总数:176）<br>
+		
+		    <a id='south2'  href='javascript:void(0);' onclick='Remo("south2");' style='color:blue;'>南楼二层大厅</a><br>(空座:0/总数:112）<br>
+		
+		    <br>	
+                </div><!-- card actions https://bootsnipp.com/snippets/819o-->
+            </div>
+        </div>
+    </div>
+
+</div>
+	
+</center>
+<hr>
+<div class="container">
+
+    <div class="row">    
+        <div id='btlist' class="col-md-6 col-md-offset-3" >
+
+</div></div></div>
+
+
+
+
+
+
+ 
+
+
+
+
+</div>
+
+
+    
+
+    <script src="/static/bootstrap/jquery.min.js?bootstrap=3.0.3.1"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js?bootstrap=3.0.3.1"></script>
+
+
+  </body>
+</html>
